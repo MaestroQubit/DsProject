@@ -3,7 +3,6 @@
 #include "RouteManager.h"
 #include <iostream>
 #include <cmath>
-using namespace std;
 extern int testsRun, testsFailed;
 inline void expect(bool condition, const char *name)
 {
@@ -11,10 +10,10 @@ inline void expect(bool condition, const char *name)
     if (!condition)
     {
         ++testsFailed;
-        cerr << "FAIL: " << name << '\n';
+        std::cerr << "FAIL: " << name << '\n';
     }
 }
-inline bool near(double a, double b) { return fabs(a - b) < 1e-9; }
+inline bool near(double a, double b) { return std::fabs(a - b) < 1e-9; }
 void runMinHeapTests();
 void runGraphTests();
 void runDijkstraTests();

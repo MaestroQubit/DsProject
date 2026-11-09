@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../models/Restaurant.h"
 #include "Trie.h"
 #include <cstddef>
 #include <string>
@@ -9,7 +10,7 @@ class SearchManager
 {
 private:
     Trie trie;
-    std::vector<std::string> restaurantNames;
+    std::vector<Restaurant> restaurants;
 
 public:
     SearchManager();
@@ -20,5 +21,5 @@ public:
     bool hasPrefix(const std::string& prefix) const;
     std::vector<std::string> getSuggestion(const std::string& prefix, size_t limit = 10) const;
     std::size_t getRestaurantCount() const;
-    std::vector<std::string> getAllRestaurants() const;
+    std::vector<Restaurant> getAllRestaurants() const;
 };

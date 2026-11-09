@@ -26,7 +26,8 @@ void SearchManager::addRestaurant(const string &name)
         return;
 
     trie.insert(name);
-    restaurantNames.push_back(name);
+    Restaurant restaurant(static_cast<int>(restaurants.size()), name, -1);
+    restaurants.push_back(restaurant);
 }
 bool SearchManager::loadRestaurant(const string &filename)
 {
@@ -55,9 +56,9 @@ vector<string> SearchManager::getSuggestion(const string &prefix, size_t limit) 
 }
 size_t SearchManager::getRestaurantCount() const
 {
-    return restaurantNames.size();
+    return restaurants.size();
 }
-vector<string> SearchManager::getAllRestaurants() const
+std::vector<Restaurant> SearchManager::getAllRestaurants() const
 {
-    return restaurantNames;
+    return restaurants;
 }

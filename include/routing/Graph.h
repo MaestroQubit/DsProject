@@ -40,7 +40,7 @@ public:
     bool updateTraffic(int u, int v, double newTravelTime);
     bool closeRoad(int u, int v);
     bool reopenRoad(int u, int v);
-    void displayGraph(std::ostream &out = cout) const;
+    void displayGraph(std::ostream &out = std::cout) const;
     int getVertexCount() const
     {
         return vertexCount;

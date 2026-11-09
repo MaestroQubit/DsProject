@@ -104,7 +104,7 @@ void RouteManager::printPath(const RouteResult &result, ostream &out) const
 
     out << "Source: " << graph.getVertexName(result.source) << "\n";
     out << "Destination: " << graph.getVertexName(result.destination) << "\n";
-    for (int i = 0; i < result.path.size(); i++)
+    for (size_t i = 0; i < result.path.size(); i++)
     {
         out << graph.getVertexName(result.path[i]);
         if (i + 1 < result.path.size())
