@@ -238,6 +238,7 @@ Only one copy is stored.
 */
 
 #include "../include/search/SearchManager.h"
+#include <iostream>
 
 using namespace std;
 

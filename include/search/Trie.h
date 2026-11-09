@@ -21,15 +21,15 @@ class Trie
 {
 private:
     TrieNode *root;
-    void collectWords(TrieNode *node, string currentWord, vector<string> &result, int limit);
+    void collectWords(TrieNode *node, string currentWord, vector<string> &result, int limit) const;
     void deleteTrie(TrieNode *node);
-    string normalise(string s);
+    string normalise(string s) const;
 
 public:
     Trie();
     ~Trie();
-    void insert(string &word);
-    bool search(string &word);
-    bool startWith(string &prefix);
-    vector<string> autoComplete(string &prefix, int limit = 10);
+    void insert(const string &word);
+    bool search(const string &word);
+    bool startWith(const string &prefix) const;
+    vector<string> autoComplete(const string &prefix, int limit = 10) const;
 };

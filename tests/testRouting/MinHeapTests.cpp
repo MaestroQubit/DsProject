@@ -1,3 +1,31 @@
-#include "TestSupport.h"
-#include "../include/MinHeap.h"
-void runMinHeapTests(){MinHeap h(1);HeapNode x;expect(!h.extractMin(x),"empty extraction safe");h.insert(3,3);h.insert(1,1);h.insert(2,2);h.insert(4,2);double last=-1;for(int i=0;i<4;++i){expect(h.extractMin(x),"extract inserted item");expect(x.distance>=last,"ascending order");last=x.distance;}for(int i=100;i>=0;--i)h.insert(i,i%13);expect(h.getSize()==101,"heap dynamic expansion");last=-1;while(h.extractMin(x)){expect(x.distance>=last,"heap property after expansion");last=x.distance;}h.insert(9,1);h.clear();expect(h.isEmpty(),"clear heap");}
+#include "../../include/routing/TestSupport.h"
+#include "../../include/routing/MinHeap.h"
+void runMinHeapTests()
+{
+    MinHeap h(1);
+    HeapNode x;
+    expect(!h.extractMin(x), "empty extraction safe");
+    h.insert(3, 3);
+    h.insert(1, 1);
+    h.insert(2, 2);
+    h.insert(4, 2);
+    double last = -1;
+    for (int i = 0; i < 4; ++i)
+    {
+        expect(h.extractMin(x), "extract inserted item");
+        expect(x.distance >= last, "ascending order");
+        last = x.distance;
+    }
+    for (int i = 100; i >= 0; --i)
+        h.insert(i, i % 13);
+    expect(h.getSize() == 101, "heap dynamic expansion");
+    last = -1;
+    while (h.extractMin(x))
+    {
+        expect(x.distance >= last, "heap property after expansion");
+        last = x.distance;
+    }
+    h.insert(9, 1);
+    h.clear();
+    expect(h.isEmpty(), "clear heap");
+}

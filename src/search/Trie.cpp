@@ -23,7 +23,7 @@ void Trie::deleteTrie(TrieNode *node)
     delete node;
 }
 
-string Trie::normalise(string s)
+string Trie::normalise(string s) const
 {
     string result;
 
@@ -35,7 +35,7 @@ string Trie::normalise(string s)
     return result;
 }
 
-void Trie::insert(string &word)
+void Trie::insert(const string &word)
 {
     string temp = normalise(word);
 
@@ -57,7 +57,7 @@ void Trie::insert(string &word)
     current->endOfWord = true;
 }
 
-bool Trie::search(string &word)
+bool Trie::search(const string &word)
 {
     string temp = normalise(word);
 
@@ -79,7 +79,7 @@ bool Trie::search(string &word)
     return current->endOfWord;
 }
 
-bool Trie::startWith(string &prefix)
+bool Trie::startWith(const string &prefix) const
 {
     string temp = normalise(prefix);
 
@@ -98,7 +98,7 @@ bool Trie::startWith(string &prefix)
     return true;
 }
 
-void Trie::collectWords(TrieNode *node, string currentWord, vector<string> &result, int limit)
+void Trie::collectWords(TrieNode *node, string currentWord, vector<string> &result, int limit) const
 {
     if (result.size() >= limit)
         return;
@@ -123,7 +123,7 @@ void Trie::collectWords(TrieNode *node, string currentWord, vector<string> &resu
     }
 }
 
-vector<string> Trie::autoComplete(string &prefix, int limit)
+vector<string> Trie::autoComplete(const string &prefix, int limit) const
 {
     string temp = normalise(prefix);
 
