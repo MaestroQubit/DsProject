@@ -12,5 +12,7 @@ add_library(ds_core
     src/dispatch/HashTable.cpp
     src/dispatch/MaxHeap.cpp
     src/dispatch/RiderManager.cpp
+    src/analytics/SegmentTree.cpp
+    src/analytics/AnalyticsManager.cpp
 )
 target_include_directories(ds_core PUBLIC ${PROJECT_SOURCE_DIR}/include)

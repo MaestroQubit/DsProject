@@ -23,6 +23,8 @@ private:
 public:
     Trie();
     ~Trie();
+    Trie(const Trie &) = delete;
+    Trie &operator=(const Trie &) = delete;
 
     void insert(const std::string &word);
     bool search(const std::string &word) const;

@@ -14,12 +14,14 @@ private:
 
 public:
     SearchManager();
+    SearchManager(const SearchManager &) = delete;
+    SearchManager &operator=(const SearchManager &) = delete;
 
-    void addRestaurant(const std::string& name);
-    bool loadRestaurant(const std::string& filename);
-    bool searchRestaurant(const std::string& name) const;
-    bool hasPrefix(const std::string& prefix) const;
-    std::vector<std::string> getSuggestion(const std::string& prefix, size_t limit = 10) const;
+    void addRestaurant(const std::string &name);
+    bool loadRestaurant(const std::string &filename);
+    bool searchRestaurant(const std::string &name) const;
+    bool hasPrefix(const std::string &prefix) const;
+    std::vector<std::string> getSuggestion(const std::string &prefix, size_t limit = 10) const;
     std::size_t getRestaurantCount() const;
     std::vector<Restaurant> getAllRestaurants() const;
 };
