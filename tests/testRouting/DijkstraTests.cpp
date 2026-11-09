@@ -33,9 +33,9 @@ static void validate(const Graph &g, const RouteResult &r)
 {
     if (!r.routeExists)
         return;
-    expect(r.pathLength > 0 && r.path[0] == r.source && r.path[r.pathLength - 1] == r.destination, "path endpoints");
+    expect(!r.path.empty() && r.path.front() == r.source && r.path.back() == r.destination, "path endpoints");
     double sum = 0;
-    for (int i = 0; i + 1 < r.pathLength; ++i)
+    for (size_t i = 0; i + 1 < r.path.size(); ++i)
     {
         double w;
         expect(g.getEdgeWeight(r.path[i], r.path[i + 1], w), "path uses valid edge");
@@ -63,7 +63,7 @@ void runDijkstraTests()
     validate(g, r);
     expect(!rm.shortestPath(0, 6).routeExists, "disconnected unreachable");
     RouteResult self = rm.shortestPath(2, 2);
-    expect(self.routeExists && self.pathLength == 1 && near(self.totalTravelTime, 0), "source equals destination");
+    expect(self.routeExists && self.path.size() == 1 && near(self.totalTravelTime, 0), "source equals destination");
     expect(!rm.shortestPath(-1, 2).routeExists && !rm.shortestPath(0, 99).routeExists, "invalid endpoints");
     g.closeRoad(1, 3);
     RouteResult altered = rm.shortestPath(0, 5);

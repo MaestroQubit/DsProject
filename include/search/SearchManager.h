@@ -1,24 +1,24 @@
 #pragma once
 
-#include "Trie.h";
+#include "Trie.h"
+#include <cstddef>
 #include <string>
 #include <vector>
-using namespace std;
 
 class SearchManager
 {
 private:
     Trie trie;
-    vector<string> restaurantNames;
+    std::vector<std::string> restaurantNames;
 
 public:
     SearchManager();
 
-    void addRestaurant(string name);
-    void loadRestaurant(string filename);
-    bool searchRestaurant(string name);
-    bool hasPrefix(string prefix);
-    vector<string> getSuggestion(string prefix, int limit = 10);
-    int getRestaurantCount();
-    vector<string> getAllRestaurants();
+    void addRestaurant(const std::string& name);
+    bool loadRestaurant(const std::string& filename);
+    bool searchRestaurant(const std::string& name) const;
+    bool hasPrefix(const std::string& prefix) const;
+    std::vector<std::string> getSuggestion(const std::string& prefix, size_t limit = 10) const;
+    std::size_t getRestaurantCount() const;
+    std::vector<std::string> getAllRestaurants() const;
 };

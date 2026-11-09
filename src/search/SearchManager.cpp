@@ -1,53 +1,63 @@
 #include "../../include/search/SearchManager.h"
+#include <cctype>
 #include <fstream>
+using namespace std;
 
-SearchManager::SearchManager() {}
-
-void SearchManager::addRestaurant(string name)
+bool containsAlphabeticCharacter(const string &value)
 {
-    if(searchRestaurant(name))
+    for (char character : value)
+    {
+        const unsigned char value = static_cast<unsigned char>(character);
+        if ((value >= 'A' && value <= 'Z') || (value >= 'a' && value <= 'z'))
+            return true;
+    }
+    return false;
+}
+
+SearchManager::SearchManager() = default;
+void SearchManager::addRestaurant(const string &name)
+{
+    if (name.empty() || !containsAlphabeticCharacter(name) || searchRestaurant(name))
+        return;
+
+    Trie candidateTrie;
+    candidateTrie.insert(name);
+    if (!candidateTrie.search(name))
         return;
 
     trie.insert(name);
     restaurantNames.push_back(name);
 }
-
-void SearchManager::loadRestaurant(string filename)
+bool SearchManager::loadRestaurant(const string &filename)
 {
     ifstream fin(filename);
-
+    if (!fin)
+        return false;
     string name;
-
-    while(getline(fin, name))
+    while (getline(fin, name))
     {
-        if(!name.empty())
+        if (!name.empty())
             addRestaurant(name);
     }
-
-    fin.close();
+    return true;
 }
-
-bool SearchManager::searchRestaurant(string name)
+bool SearchManager::searchRestaurant(const string &name) const
 {
     return trie.search(name);
 }
-
-bool SearchManager::hasPrefix(string prefix)
+bool SearchManager::hasPrefix(const string &prefix) const
 {
     return trie.startWith(prefix);
 }
-
-vector<string> SearchManager::getSuggestion(string prefix, int limit)
+vector<string> SearchManager::getSuggestion(const string &prefix, size_t limit) const
 {
     return trie.autoComplete(prefix, limit);
 }
-
-int SearchManager::getRestaurantCount()
+size_t SearchManager::getRestaurantCount() const
 {
     return restaurantNames.size();
 }
-
-vector<string> SearchManager::getAllRestaurants()
+vector<string> SearchManager::getAllRestaurants() const
 {
     return restaurantNames;
 }

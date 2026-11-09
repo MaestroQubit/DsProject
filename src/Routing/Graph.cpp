@@ -79,23 +79,26 @@ bool Graph::insertOne(int u, int v, double time, bool open, int roadId)
     {
         oldEdge->travelTime = time;
         oldEdge->open = open;
+        oldEdge->roadId = roadId;
         return false;
     }
-    EdgeNode *edge = new EdgeNode;
-    edge->destination = v;
-    edge->travelTime = time;
-    edge->open = open;
-    edge->roadId = roadId;
-    edge->next = heads[u];
+    EdgeNode *edge = new EdgeNode{v, time, open, roadId, heads[u]};
     heads[u] = edge;
     return true;
 }
 bool Graph::addEdge(int u, int v, double time, bool undirected)
 {
-    if (!validVertex(u) || !validVertex(v) || time < 0 || !isfinite(time))
+    if (!validVertex(u) || !validVertex(v) || time < 0 || !std::isfinite(time))
         return false;
-    EdgeNode *existing = findEdge(u, v);
-    int roadId = existing == nullptr ? nextRoadId++ : existing->roadId;
+    EdgeNode *forward = findEdge(u, v);
+    EdgeNode *reverse = undirected ? findEdge(v, u) : nullptr;
+    int roadId;
+    if (forward != nullptr)
+        roadId = forward->roadId;
+    else if (reverse != nullptr)
+        roadId = reverse->roadId;
+    else
+        roadId = nextRoadId++;
     insertOne(u, v, time, true, roadId);
     if (undirected)
         insertOne(v, u, time, true, roadId);

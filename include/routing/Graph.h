@@ -1,7 +1,6 @@
 #pragma once
-#include <string>
 #include <iostream>
-using namespace std;
+#include <string>
 class Graph
 {
 public:
@@ -15,7 +14,7 @@ public:
     };
 
 private:
-    string *names;
+    std::string *names;
     EdgeNode **heads;
     int vertexCount;
     int capacity;
@@ -35,18 +34,18 @@ public:
     ~Graph();
     Graph(const Graph &) = delete;
     Graph &operator=(const Graph &) = delete;
-    int addVertex(const string &name);
+    int addVertex(const std::string &name);
     bool addEdge(int u, int v, double travelTime, bool undirected = true);
     bool removeEdge(int u, int v);
     bool updateTraffic(int u, int v, double newTravelTime);
     bool closeRoad(int u, int v);
     bool reopenRoad(int u, int v);
-    void displayGraph(ostream &out = cout) const;
+    void displayGraph(std::ostream &out = cout) const;
     int getVertexCount() const
     {
         return vertexCount;
     }
-    const string &getVertexName(int id) const;
+    const std::string &getVertexName(int id) const;
     bool getEdgeWeight(int u, int v, double &weight) const;
     const EdgeNode *getAdjacencyHead(int vertex) const;
 };

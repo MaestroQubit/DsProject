@@ -1,4 +1,8 @@
 #include "../../include/routing/RouteManager.h"
+#include <iomanip>
+#include <limits>
+#include <vector>
+using namespace std;
 
 RouteManager::RouteManager(const Graph &cityGraph) : graph(cityGraph) {}
 
@@ -65,20 +69,10 @@ RouteResult RouteManager::shortestPath(int source, int destination) const
 
     if (visited[destination])
     {
-        int count = 0;
+        vector<int> reversedPath;
         for (int vertex = destination; vertex != -1; vertex = parent[vertex])
-        {
-            count++;
-        }
-
-        result.path = new int[count];
-        result.pathLength = count;
-        int vertex = destination;
-        for (int i = count - 1; i >= 0; i--)
-        {
-            result.path[i] = vertex;
-            vertex = parent[vertex];
-        }
+            reversedPath.push_back(vertex);
+        result.path.assign(reversedPath.rbegin(), reversedPath.rend());
         result.routeExists = true;
         result.totalTravelTime = distance[destination];
     }
@@ -110,10 +104,10 @@ void RouteManager::printPath(const RouteResult &result, ostream &out) const
 
     out << "Source: " << graph.getVertexName(result.source) << "\n";
     out << "Destination: " << graph.getVertexName(result.destination) << "\n";
-    for (int i = 0; i < result.pathLength; i++)
+    for (int i = 0; i < result.path.size(); i++)
     {
         out << graph.getVertexName(result.path[i]);
-        if (i + 1 < result.pathLength)
+        if (i + 1 < result.path.size())
         {
             double time;
             graph.getEdgeWeight(result.path[i], result.path[i + 1], time);

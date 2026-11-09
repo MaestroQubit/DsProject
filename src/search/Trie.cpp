@@ -23,14 +23,14 @@ void Trie::deleteTrie(TrieNode *node)
     delete node;
 }
 
-string Trie::normalise(string s) const
+string Trie::normalise(const string &value) const
 {
     string result;
-
-    for (char ch : s)
+    for (char character : value)
     {
-        if (isalpha(ch))
-            result += tolower(ch);
+        const unsigned char value = static_cast<unsigned char>(character);
+        if ((value >= 'A' && value <= 'Z') || (value >= 'a' && value <= 'z'))
+            result += static_cast<char>(value >= 'A' && value <= 'Z' ? value - 'A' + 'a' : value);
     }
     return result;
 }
@@ -57,7 +57,7 @@ void Trie::insert(const string &word)
     current->endOfWord = true;
 }
 
-bool Trie::search(const string &word)
+bool Trie::search(const string &word) const
 {
     string temp = normalise(word);
 
@@ -98,33 +98,32 @@ bool Trie::startWith(const string &prefix) const
     return true;
 }
 
-void Trie::collectWords(TrieNode *node, string currentWord, vector<string> &result, int limit) const
+void Trie::collectWords(TrieNode *node, const string &currentWord, vector<string> &result, size_t limit) const
 {
-    if (result.size() >= limit)
-        return;
-
-    if (node == nullptr)
+    if (node == nullptr || result.size() >= limit)
         return;
 
     if (node->endOfWord)
     {
         result.push_back(currentWord);
-        if (result.size() >= limit)
+        if (result.size() == limit)
             return;
     }
-    for (int i = 0; i < 26; i++)
+
+    for (int i = 0; i < 26; ++i)
     {
         if (node->children[i] != nullptr)
         {
-            char ch = 'a' + i;
-
-            collectWords(node->children[i], currentWord + ch, result, limit);
+            const char character = static_cast<char>('a' + i);
+            collectWords(node->children[i], currentWord + character, result, limit);
         }
     }
 }
 
-vector<string> Trie::autoComplete(const string &prefix, int limit) const
+vector<string> Trie::autoComplete(const string &prefix, size_t limit) const
 {
+    if (limit == 0)
+        return {};
     string temp = normalise(prefix);
 
     TrieNode *current = root;
