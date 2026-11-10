@@ -1,4 +1,4 @@
-#include "kitchen/KitchenHeap.h"
+#include "../../include/kitchen/KitchenHeap.h"
 
 KitchenOrder::KitchenOrder() {
     orderId = 0;

@@ -24,4 +24,7 @@ public:
     std::vector<std::string> getSuggestion(const std::string &prefix, size_t limit = 10) const;
     std::size_t getRestaurantCount() const;
     std::vector<Restaurant> getAllRestaurants() const;
+    bool setRestaurantLocation(int restaurantId,int locationId);
+    int getRestaurantLocation(int restaurantId) const;
+    const Restaurant *getRestaurantById(int restaurantId) const;
 };

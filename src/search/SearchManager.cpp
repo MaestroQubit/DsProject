@@ -15,6 +15,7 @@ bool containsAlphabeticCharacter(const string &value)
 }
 
 SearchManager::SearchManager() = default;
+
 void SearchManager::addRestaurant(const string &name)
 {
     if (name.empty() || !containsAlphabeticCharacter(name) || searchRestaurant(name))
@@ -24,6 +25,7 @@ void SearchManager::addRestaurant(const string &name)
     Restaurant restaurant(static_cast<int>(restaurants.size()), name, -1);
     restaurants.push_back(restaurant);
 }
+
 bool SearchManager::loadRestaurant(const string &filename)
 {
     ifstream fin(filename);
@@ -37,23 +39,50 @@ bool SearchManager::loadRestaurant(const string &filename)
     }
     return true;
 }
+
 bool SearchManager::searchRestaurant(const string &name) const
 {
     return trie.search(name);
 }
+
 bool SearchManager::hasPrefix(const string &prefix) const
 {
     return trie.startWith(prefix);
 }
+
 vector<string> SearchManager::getSuggestion(const string &prefix, size_t limit) const
 {
     return trie.autoComplete(prefix, limit);
 }
+
 size_t SearchManager::getRestaurantCount() const
 {
     return restaurants.size();
 }
+
 std::vector<Restaurant> SearchManager::getAllRestaurants() const
 {
     return restaurants;
+}
+
+bool SearchManager::setRestaurantLocation(int restaurantId, int locationId)
+{
+    if (restaurantId < 0 || restaurantId >= static_cast<int>(restaurants.size()))
+        return false;
+    restaurants[restaurantId].locationId = locationId;
+    return true;
+}
+
+int SearchManager::getRestaurantLocation(int restaurantId) const
+{
+    if (restaurantId < 0 || restaurantId >= static_cast<int>(restaurants.size()))
+        return -1;
+    return restaurants[restaurantId].locationId;
+}
+
+const Restaurant *SearchManager::getRestaurantById(int restaurantId) const
+{
+    if (restaurantId < 0 || restaurantId >= static_cast<int>(restaurants.size()))
+        return nullptr;
+    return &restaurants[restaurantId];
 }

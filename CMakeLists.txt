@@ -19,6 +19,7 @@ add_library(ds_core
     src/kitchen/KitchenManager.cpp
     src/analytics/SegmentTree.cpp
     src/analytics/AnalyticsManager.cpp
+    src/system/FoodDeliverySystem.cpp
 )
 
 target_include_directories(ds_core PUBLIC ${PROJECT_SOURCE_DIR}/include)

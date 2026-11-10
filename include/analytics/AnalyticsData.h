@@ -2,23 +2,12 @@
 
 struct AnalyticsData
 {
-    int totalRestaurants;
-    int totalRiders;
-    int availableRiders;
-    int busyRiders;
-    int offlineRiders;
+    int totalRestaurants = 0;
+    int totalRiders = 0;
+    int availableRiders = 0;
+    int busyRiders = 0;
+    int offlineRiders = 0;
 
-    double averageRating;
-    double highestRating;
-
-    AnalyticsData()
-    {
-        totalRestaurants = 0;
-        totalRiders = 0;
-        availableRiders = 0;
-        busyRiders = 0;
-        offlineRiders = 0;
-        averageRating = 0.0;
-        highestRating = 0.0;
-    }
+    double averageRating = 0.0;
+    double highestRating = 0.0;
 };
