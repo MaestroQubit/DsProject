@@ -20,11 +20,6 @@ void SearchManager::addRestaurant(const string &name)
     if (name.empty() || !containsAlphabeticCharacter(name) || searchRestaurant(name))
         return;
 
-    Trie candidateTrie;
-    candidateTrie.insert(name);
-    if (!candidateTrie.search(name))
-        return;
-
     trie.insert(name);
     Restaurant restaurant(static_cast<int>(restaurants.size()), name, -1);
     restaurants.push_back(restaurant);

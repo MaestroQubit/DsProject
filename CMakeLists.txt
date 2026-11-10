@@ -17,6 +17,8 @@ add_library(ds_core
     src/dispatch/RiderManager.cpp
     src/kitchen/KitchenHeap.cpp
     src/kitchen/KitchenManager.cpp
+    src/analytics/SegmentTree.cpp
+    src/analytics/AnalyticsManager.cpp
 )
 
 target_include_directories(ds_core PUBLIC ${PROJECT_SOURCE_DIR}/include)
