@@ -1,0 +1,9 @@
+order_id,customer_id,restaurant_location_id,delivery_location_id,order_status,order_time,estimated_preparation_minutes
+O1001,C001,0,19,Preparing,12:05,18
+O1002,C002,4,20,Ready for Dispatch,12:12,14
+O1003,C003,1,21,Assigned to Rider,12:18,20
+O1004,C004,7,14,Preparing,12:25,12
+O1005,C005,5,15,Ready for Dispatch,12:31,10
+O1006,C006,3,18,Assigned to Rider,12:40,16
+O1007,C007,8,11,Preparing,12:46,15
+O1008,C008,6,17,Ready for Dispatch,12:54,9
