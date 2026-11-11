@@ -1,0 +1,9 @@
+customer_id,customer_name,phone,location_id,address_label
+C001,Riya Malhotra,9811102001,19,Green Valley Apartments Block A
+C002,Aditya Jain,9811102002,20,Sunrise Residency Tower 3
+C003,Sneha Kapoor,9811102003,21,Tech Park Staff Quarters
+C004,Arjun Mehta,9811102004,14,Residential Area A House 42
+C005,Pooja Nair,9811102005,15,Residential Area B Flat 18
+C006,Rahul Bose,9811102006,18,Shopping Complex Office 204
+C007,Kavya Iyer,9811102007,11,Electronic City Phase 2
+C008,Manav Sethi,9811102008,17,Metro Station Gate 2
