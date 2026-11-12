@@ -1,0 +1,24 @@
+location_id,name,type
+0,Dominos,Restaurant
+1,Pizza Hut,Restaurant
+2,Pizza Point,Restaurant
+3,Burger King,Restaurant
+4,KFC,Restaurant
+5,Subway,Restaurant
+6,McDonalds,Restaurant
+7,Bikanervala,Restaurant
+8,Haldirams,Restaurant
+9,Sector 62 Crossing,Junction
+10,Sector 63 Crossing,Junction
+11,Electronic City,Commercial Area
+12,Main Road Junction,Junction
+13,Market Crossing,Junction
+14,Residential Area A,Residential Area
+15,Residential Area B,Residential Area
+16,Hospital Junction,Junction
+17,Metro Station,Transit Point
+18,Shopping Complex,Commercial Area
+19,Customer Zone A,Customer Location
+20,Customer Zone B,Customer Location
+21,Customer Zone C,Customer Location
+22,Industrial Outpost,Disconnected Test Location
