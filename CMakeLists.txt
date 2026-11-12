@@ -19,6 +19,8 @@ add_library(ds_core
     src/kitchen/KitchenManager.cpp
     src/analytics/SegmentTree.cpp
     src/analytics/AnalyticsManager.cpp
+    src/storage/BPlusTree.cpp
+    src/storage/StorageManager.cpp
     src/system/FoodDeliverySystem.cpp
 )
 

@@ -72,6 +72,16 @@ AnalyticsData FoodDeliverySystem::getAnalyticsReport()
     return analyticsManager.generateReport(searchManager, riderManager);
 }
 
+StorageManager &FoodDeliverySystem::getStorageManager()
+{
+    return storageManager;
+}
+
+const StorageManager &FoodDeliverySystem::getStorageManager() const
+{
+    return storageManager;
+}
+
 Order *FoodDeliverySystem::getOrderById(int orderId)
 {
     for (Order &order : orders)
@@ -237,4 +247,24 @@ bool FoodDeliverySystem::setRestaurantLocation(int restaurantId, int locationId)
 int FoodDeliverySystem::getRestaurantLocation(int restaurantId) const
 {
     return searchManager.getRestaurantLocation(restaurantId);
+}
+
+bool FoodDeliverySystem::saveRestaurant(const Restaurant &restaurant)
+{
+    return storageManager.insertRestaurant(restaurant);
+}
+
+bool FoodDeliverySystem::saveOrder(const Order &order)
+{
+    return storageManager.insertOrder(order);
+}
+
+bool FoodDeliverySystem::saveDelivery(const Delivery &delivery)
+{
+    return storageManager.insertDelivery(delivery);
+}
+
+bool FoodDeliverySystem::saveRider(const Rider &rider)
+{
+    return storageManager.insertRider(rider);
 }

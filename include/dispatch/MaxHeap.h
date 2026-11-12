@@ -14,14 +14,11 @@ struct RiderCandidate {
         : rider(value), distance(deliveryDistance), score(rankingScore) {}
 };
 
-// Max-heap ordered by dispatch score. Ties are resolved by shorter distance,
-// then lower rider ID to keep dispatch deterministic.
 class MaxHeap {
 private:
     std::vector<RiderCandidate> heap;
 
-    static bool higherPriority(const RiderCandidate& lhs,
-                               const RiderCandidate& rhs);
+    static bool higherPriority(const RiderCandidate& lhs, const RiderCandidate& rhs);
     void siftUp(std::size_t index);
     void siftDown(std::size_t index);
 

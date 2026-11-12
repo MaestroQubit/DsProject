@@ -1,27 +1,10 @@
 #pragma once
 
+#include "../../include/models/rider.h"
 #include <cstddef>
 #include <string>
 #include <vector>
 
-// Rider state shared by the dispatch hash table and manager.
-struct Rider {
-    int id;
-    std::string name;
-    double rating;
-    std::string status;
-    int assignedOrderId;
-
-    Rider()
-        : id(-1), rating(0.0), status("Available"), assignedOrderId(-1) {}
-
-    Rider(int riderId, const std::string& riderName, double riderRating,
-          const std::string& riderStatus = "Available")
-        : id(riderId), name(riderName), rating(riderRating),
-          status(riderStatus), assignedOrderId(-1) {}
-};
-
-// Separate-chaining hash table keyed by rider ID.
 class HashTable {
 private:
     struct Node {

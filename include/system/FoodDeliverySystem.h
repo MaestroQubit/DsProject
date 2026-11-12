@@ -7,6 +7,7 @@
 #include "../kitchen/KitchenManager.h"
 #include "../analytics/AnalyticsManager.h"
 #include "../analytics/AnalyticsData.h"
+#include "../storage/StorageManager.h"
 #include "../models/Order.h"
 #include "../models/Delivery.h"
 
@@ -20,6 +21,7 @@ private:
     RiderManager riderManager;
     KitchenManager kitchenManager;
     AnalyticsManager analyticsManager;
+    StorageManager storageManager;
     Graph cityGraph;
     RouteManager routeManager;
     std::vector<Order> orders;
@@ -51,6 +53,9 @@ public:
     AnalyticsManager &getAnalyticsManager();
     const AnalyticsManager &getAnalyticsManager() const;
 
+    StorageManager &getStorageManager();
+    const StorageManager &getStorageManager() const;
+
     Order *getOrderById(int orderId);
     std::vector<Order> &getOrders();
     const Order *getOrderById(int orderId) const;
@@ -75,4 +80,8 @@ public:
     bool createDelivery(int orderId, int riderId, double travelTime);
     bool setRestaurantLocation(int restaurantId, int locationId);
     int getRestaurantLocation(int restaurantId) const;
+    bool saveRestaurant(const Restaurant &restaurant);
+    bool saveOrder(const Order &order);
+    bool saveDelivery(const Delivery &delivery);
+    bool saveRider(const Rider &rider);
 };

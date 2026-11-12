@@ -11,9 +11,6 @@ struct RiderDistance {
     RiderDistance(int id, double value) : riderId(id), distance(value) {}
 };
 
-// Coordinates rider lookup, availability, ranking, and assignment.
-// Distances are supplied by the routing/UI layer so this module does not
-// depend on or alter the existing UI or routing implementation.
 class RiderManager {
 private:
     HashTable riders;
