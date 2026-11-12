@@ -1,5 +1,5 @@
 #include "../../include/search/SearchManager.h"
-#include <cctype>
+#include <sstream>
 #include <fstream>
 using namespace std;
 
@@ -31,12 +31,22 @@ bool SearchManager::loadRestaurant(const string &filename)
     ifstream fin(filename);
     if (!fin)
         return false;
-    string name;
-    while (getline(fin, name))
+    string line;
+    getline(fin, line);
+    while (getline(fin, line))
     {
-        if (!name.empty())
-            addRestaurant(name);
+        stringstream ss(line);
+        string token;
+        getline(ss, token, ',');
+        int id = stoi(token);
+        string name;
+        getline(ss, name, ',');
+        getline(ss, token, ',');
+        int locationId = stoi(token);
+        trie.insert(name);
+        restaurants.push_back(Restaurant(id, name, locationId));
     }
+
     return true;
 }
 

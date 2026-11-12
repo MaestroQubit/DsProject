@@ -1,10 +1,14 @@
 #include "../../include/system/FoodDeliverySystem.h"
+#include "../../include/routing/CityData.h"
 #include <vector>
 using namespace std;
 
 FoodDeliverySystem::FoodDeliverySystem() : cityGraph(), routeManager(cityGraph)
 {
     nextOrderId = 1;
+    storageManager.initialize();
+    buildCityMap(cityGraph);
+    loadRestaurants("data/restaurants.csv");
 }
 
 SearchManager &FoodDeliverySystem::getSearchManager()

@@ -1,11 +1,14 @@
 #pragma once
+
 struct HeapNode
 {
     int vertex;
     double distance;
 };
+
 class MinHeap
 {
+private:
     HeapNode *data;
     int size;
     int capacity;
@@ -20,16 +23,7 @@ public:
     MinHeap &operator=(const MinHeap &) = delete;
     void insert(int vertex, double distance);
     bool extractMin(HeapNode &result);
-    bool isEmpty() const
-    {
-        return size == 0;
-    }
-    int getSize() const
-    {
-        return size;
-    }
-    void clear()
-    {
-        size = 0;
-    }
+    bool isEmpty() const;
+    int getSize() const;
+    void clear();
 };
