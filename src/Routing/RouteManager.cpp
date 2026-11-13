@@ -16,8 +16,10 @@ RouteResult RouteManager::shortestPath(int source, int destination) const
     result.destination = destination;
 
     int n = graph.getVertexCount();
+    int srcIdx = graph.getVertexIndex(source);
+    int destIdx = graph.getVertexIndex(destination);
 
-    if (source < 0 || destination < 0 || source >= n || destination >= n)
+    if (srcIdx < 0 || destIdx < 0 || srcIdx >= n || destIdx >= n)
         return result;
 
     vector<double> distance(n, numeric_limits<double>::infinity());
@@ -25,8 +27,8 @@ RouteResult RouteManager::shortestPath(int source, int destination) const
     vector<bool> visited(n, false);
 
     MinHeap heap;
-    distance[source] = 0.0;
-    heap.insert(source, 0.0);
+    distance[srcIdx] = 0.0;
+    heap.insert(srcIdx, 0.0);
 
     HeapNode current;
     while (heap.extractMin(current))
@@ -35,6 +37,8 @@ RouteResult RouteManager::shortestPath(int source, int destination) const
         if (visited[u] || current.distance != distance[u])
             continue;
         visited[u] = true;
+        if (u == destIdx)
+            break;
         const Graph::EdgeNode *edge = graph.getAdjacencyHead(u);
         while (edge)
         {
@@ -50,14 +54,14 @@ RouteResult RouteManager::shortestPath(int source, int destination) const
         }
     }
 
-    if (!visited[destination])
+    if (!visited[destIdx])
         return result;
 
     result.routeExists = true;
-    result.totalTravelTime = distance[destination];
+    result.totalTravelTime = distance[destIdx];
     vector<int> path;
-    for (int v = destination; v != -1; v = parent[v])
-        path.push_back(v);
+    for (int v = destIdx; v != -1; v = parent[v])
+        path.push_back(graph.getVertexExternalId(v));
     reverse(path.begin(), path.end());
     result.path = path;
     return result;

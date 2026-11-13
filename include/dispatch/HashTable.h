@@ -33,6 +33,7 @@ public:
     const Rider* searchRider(int riderId) const;
     bool updateRider(const Rider& rider);
     bool deleteRider(int riderId);
+    void clear();
 
     std::size_t size() const { return elementCount; }
     bool empty() const { return elementCount == 0; }

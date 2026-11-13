@@ -6,6 +6,7 @@ using namespace std;
 TrieNode::TrieNode()
 {
     endOfWord = false;
+    restaurantId = -1;
     for(int i=0;i<26;i++)
         children[i] = nullptr;
 }
@@ -29,6 +30,12 @@ void Trie::deleteTrie(TrieNode *node)
     delete node;
 }
 
+void Trie::clear()
+{
+    deleteTrie(root);
+    root = new TrieNode();
+}
+
 string Trie::normalise(const string &value) const
 {
     string result;
@@ -41,7 +48,7 @@ string Trie::normalise(const string &value) const
     return result;
 }
 
-void Trie::insert(const string &word)
+void Trie::insert(const string &word, int id)
 {
     string temp = normalise(word);
 
@@ -61,6 +68,8 @@ void Trie::insert(const string &word)
         current = current->children[index];
     }
     current->endOfWord = true;
+    current->originalWord = word;
+    current->restaurantId = id;
 }
 
 bool Trie::search(const string &word) const
@@ -111,8 +120,8 @@ void Trie::collectWords(TrieNode *node, const string &currentWord, vector<string
 
     if (node->endOfWord)
     {
-        result.push_back(currentWord);
-        if (result.size() == limit)
+        result.push_back(!node->originalWord.empty() ? node->originalWord : currentWord);
+        if (result.size() >= limit)
             return;
     }
 
@@ -122,6 +131,8 @@ void Trie::collectWords(TrieNode *node, const string &currentWord, vector<string
         {
             const char character = static_cast<char>('a' + i);
             collectWords(node->children[i], currentWord + character, result, limit);
+            if (result.size() >= limit)
+                return;
         }
     }
 }

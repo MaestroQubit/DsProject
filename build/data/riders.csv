@@ -1,0 +1,9 @@
+rider_id,rider_name,phone,current_location_id,status,vehicle_type,shift_start,shift_end
+R001,Aarav Sharma,9876501001,14,Available,Bike,09:00,18:00
+R002,Meera Singh,9876501002,15,Available,Scooter,10:00,19:00
+R003,Rohan Verma,9876501003,17,On Delivery,Bike,08:00,17:00
+R004,Ananya Gupta,9876501004,13,Available,Scooter,11:00,20:00
+R005,Vikram Patel,9876501005,11,Offline,Bike,12:00,21:00
+R006,Ishita Rao,9876501006,16,Available,Bike,09:00,18:00
+R007,Kabir Khan,9876501007,18,On Delivery,Scooter,10:00,19:00
+R008,Nisha Das,9876501008,9,Available,Bike,08:00,17:00

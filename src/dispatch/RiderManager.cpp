@@ -17,10 +17,14 @@ bool RiderManager::normalizeStatus(const std::string& value, std::string& normal
     }
 
     if (lower == "available") normalized = "Available";
-    else if (lower == "busy") normalized = "Busy";
+    else if (lower == "busy" || lower == "on delivery") normalized = "Busy";
     else if (lower == "offline") normalized = "Offline";
     else return false;
     return true;
+}
+
+void RiderManager::clear() {
+    riders.clear();
 }
 
 bool RiderManager::insertRider(const Rider& rider) {

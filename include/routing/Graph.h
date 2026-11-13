@@ -17,7 +17,7 @@ public:
 
 private:
     std::string *names;
-
+    int *externalIds;
     EdgeNode **heads;
     int vertexCount;
     int capacity;
@@ -38,13 +38,16 @@ public:
     const EdgeNode *getAdjacencyHead(int vertex) const;
     const std::string &getVertexName(int id) const;
 
-    int addVertex(const std::string &name);
+    int addVertex(const std::string &name, int externalId = -1);
+    int getVertexIndex(int externalId) const;
+    int getVertexExternalId(int vertexIndex) const;
     bool addEdge(int u, int v, double travelTime, bool undirected = true);
     bool removeEdge(int u, int v);
     bool updateTraffic(int u, int v, double newTravelTime);
     bool closeRoad(int u, int v);
     bool reopenRoad(int u, int v);
     void displayGraph(std::ostream &out = std::cout) const;
+    void clear();
     int getVertexCount() const { return vertexCount; }
     bool getEdgeWeight(int u, int v, double &weight) const;
 };

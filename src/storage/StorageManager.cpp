@@ -5,6 +5,8 @@
 
 using namespace std;
 
+static const size_t MAX_SAFE_STRING_LENGTH = 10000;
+
 StorageManager::StorageManager(const string &folder)
 {
     dataFolder = folder;
@@ -17,7 +19,9 @@ string StorageManager::getDataFolder() const
 
 void StorageManager::setDataFolder(const string &folder)
 {
+    lock_guard<recursive_mutex> guard(storageMutex);
     dataFolder = folder;
+    initialize();
 }
 
 bool StorageManager::initialize()
@@ -85,21 +89,24 @@ bool StorageManager::writeRestaurant(ofstream &file, const Restaurant &restauran
 
 bool StorageManager::readRestaurant(ifstream &file, Restaurant &restaurant)
 {
-    size_t length;
+    size_t length = 0;
     if (!file.read(reinterpret_cast<char *>(&restaurant.id), sizeof(int)))
         return false;
 
-    file.read(reinterpret_cast<char *>(&restaurant.locationId), sizeof(int));
-    file.read(reinterpret_cast<char *>(&length), sizeof(size_t));
+    if (!file.read(reinterpret_cast<char *>(&restaurant.locationId), sizeof(int)))
+        return false;
+    if (!file.read(reinterpret_cast<char *>(&length), sizeof(size_t)) || length > MAX_SAFE_STRING_LENGTH)
+        return false;
     restaurant.name.resize(length);
-    file.read(&restaurant.name[0], length);
+    if (length > 0)
+        file.read(&restaurant.name[0], length);
 
     return file.good();
 }
 
 bool StorageManager::insertRestaurant(const Restaurant &restaurant)
 {
-    lock_guard<mutex> guard(storageMutex);
+    lock_guard<recursive_mutex> guard(storageMutex);
     if (restaurant.id < 0 || restaurant.name.empty() ||
         restaurantIndex.contains(restaurant.id))
         return false;
@@ -114,7 +121,7 @@ bool StorageManager::insertRestaurant(const Restaurant &restaurant)
 
 bool StorageManager::getRestaurant(int id, Restaurant &result)
 {
-    lock_guard<mutex> guard(storageMutex);
+    lock_guard<recursive_mutex> guard(storageMutex);
     ifstream file(dataFolder + "/restaurants.dat", ios::binary);
     if (!file)
         return false;
@@ -132,6 +139,7 @@ bool StorageManager::getRestaurant(int id, Restaurant &result)
 
 bool StorageManager::updateRestaurant(const Restaurant &restaurant)
 {
+    lock_guard<recursive_mutex> guard(storageMutex);
     vector<Restaurant> restaurants = getAllRestaurants();
     bool found = false;
     for (Restaurant &current : restaurants)
@@ -147,13 +155,24 @@ bool StorageManager::updateRestaurant(const Restaurant &restaurant)
     ofstream file(dataFolder + "/restaurants.dat", ios::binary | ios::trunc);
     if (!file)
         return false;
+    bool writeOk = true;
     for (const Restaurant &current : restaurants)
-        writeRestaurant(file, current);
-    return true;
+    {
+        if (!writeRestaurant(file, current))
+        {
+            writeOk = false;
+            break;
+        }
+    }
+    file.flush();
+    if (!file.good())
+        writeOk = false;
+    return writeOk;
 }
 
 bool StorageManager::deleteRestaurant(int id)
 {
+    lock_guard<recursive_mutex> guard(storageMutex);
     vector<Restaurant> restaurants = getAllRestaurants();
     const bool found = restaurantIndex.contains(id);
     if (!found)
@@ -161,13 +180,24 @@ bool StorageManager::deleteRestaurant(int id)
     ofstream file(dataFolder + "/restaurants.dat", ios::binary | ios::trunc);
     if (!file)
         return false;
+    bool writeOk = true;
     for (const Restaurant &restaurant : restaurants)
     {
         if (restaurant.id != id)
-            writeRestaurant(file, restaurant);
+        {
+            if (!writeRestaurant(file, restaurant))
+            {
+                writeOk = false;
+                break;
+            }
+        }
     }
-    restaurantIndex.remove(id);
-    return true;
+    file.flush();
+    if (!file.good())
+        writeOk = false;
+    if (writeOk)
+        restaurantIndex.remove(id);
+    return writeOk;
 }
 
 bool StorageManager::restaurantExists(int id) const
@@ -177,7 +207,7 @@ bool StorageManager::restaurantExists(int id) const
 
 vector<Restaurant> StorageManager::getAllRestaurants()
 {
-    lock_guard<mutex> guard(storageMutex);
+    lock_guard<recursive_mutex> guard(storageMutex);
     vector<Restaurant> result;
     ifstream file(dataFolder + "/restaurants.dat", ios::binary);
     if (!file)
@@ -206,26 +236,30 @@ bool StorageManager::writeMenuItem(ofstream &file, const MenuItem &item)
 
 bool StorageManager::readMenuItem(ifstream &file, MenuItem &item)
 {
-    size_t nameLength;
-    size_t categoryLength;
+    size_t nameLength = 0;
+    size_t categoryLength = 0;
 
     if (!file.read((char *)&item.id, sizeof(int)))
         return false;
     file.read((char *)&item.restaurantId, sizeof(int));
     file.read((char *)&item.price, sizeof(double));
-    file.read((char *)&nameLength, sizeof(size_t));
+    if (!file.read((char *)&nameLength, sizeof(size_t)) || nameLength > MAX_SAFE_STRING_LENGTH)
+        return false;
     item.name.resize(nameLength);
-    file.read(&item.name[0], nameLength);
-    file.read((char *)&categoryLength, sizeof(size_t));
+    if (nameLength > 0)
+        file.read(&item.name[0], nameLength);
+    if (!file.read((char *)&categoryLength, sizeof(size_t)) || categoryLength > MAX_SAFE_STRING_LENGTH)
+        return false;
     item.category.resize(categoryLength);
-    file.read(&item.category[0], categoryLength);
+    if (categoryLength > 0)
+        file.read(&item.category[0], categoryLength);
 
     return file.good();
 }
 
 bool StorageManager::insertMenuItem(const MenuItem &item)
 {
-    lock_guard<mutex> guard(storageMutex);
+    lock_guard<recursive_mutex> guard(storageMutex);
     if (item.id < 0 || item.restaurantId < 0 || item.name.empty() ||
         item.category.empty() || item.price < 0.0 ||
         menuItemIndex.contains(item.id))
@@ -241,7 +275,7 @@ bool StorageManager::insertMenuItem(const MenuItem &item)
 
 bool StorageManager::getMenuItem(int id, MenuItem &item)
 {
-    lock_guard<mutex> guard(storageMutex);
+    lock_guard<recursive_mutex> guard(storageMutex);
     ifstream file(dataFolder + "/menuitems.dat", ios::binary);
     if (!file)
         return false;
@@ -259,6 +293,7 @@ bool StorageManager::getMenuItem(int id, MenuItem &item)
 
 bool StorageManager::updateMenuItem(const MenuItem &item)
 {
+    lock_guard<recursive_mutex> guard(storageMutex);
     vector<MenuItem> items = getAllMenuItems();
     bool found = false;
     for (MenuItem &current : items)
@@ -274,13 +309,24 @@ bool StorageManager::updateMenuItem(const MenuItem &item)
     ofstream file(dataFolder + "/menuitems.dat", ios::binary | ios::trunc);
     if (!file)
         return false;
+    bool writeOk = true;
     for (const MenuItem &current : items)
-        writeMenuItem(file, current);
-    return true;
+    {
+        if (!writeMenuItem(file, current))
+        {
+            writeOk = false;
+            break;
+        }
+    }
+    file.flush();
+    if (!file.good())
+        writeOk = false;
+    return writeOk;
 }
 
 bool StorageManager::deleteMenuItem(int id)
 {
+    lock_guard<recursive_mutex> guard(storageMutex);
     vector<MenuItem> items = getAllMenuItems();
     const bool found = menuItemIndex.contains(id);
     if (!found)
@@ -288,13 +334,24 @@ bool StorageManager::deleteMenuItem(int id)
     ofstream file(dataFolder + "/menuitems.dat", ios::binary | ios::trunc);
     if (!file)
         return false;
+    bool writeOk = true;
     for (const MenuItem &item : items)
     {
         if (item.id != id)
-            writeMenuItem(file, item);
+        {
+            if (!writeMenuItem(file, item))
+            {
+                writeOk = false;
+                break;
+            }
+        }
     }
-    menuItemIndex.remove(id);
-    return true;
+    file.flush();
+    if (!file.good())
+        writeOk = false;
+    if (writeOk)
+        menuItemIndex.remove(id);
+    return writeOk;
 }
 
 bool StorageManager::menuItemExists(int id) const
@@ -304,7 +361,7 @@ bool StorageManager::menuItemExists(int id) const
 
 vector<MenuItem> StorageManager::getAllMenuItems()
 {
-    lock_guard<mutex> guard(storageMutex);
+    lock_guard<recursive_mutex> guard(storageMutex);
     vector<MenuItem> result;
     ifstream file(dataFolder + "/menuitems.dat", ios::binary);
     if (!file)
@@ -337,7 +394,7 @@ bool StorageManager::writeOrder(ofstream &file, const Order &order)
 
 bool StorageManager::readOrder(ifstream &file, Order &order)
 {
-    size_t nameLength;
+    size_t nameLength = 0;
 
     if (!file.read((char *)&order.orderId, sizeof(int)))
         return false;
@@ -351,18 +408,19 @@ bool StorageManager::readOrder(ifstream &file, Order &order)
     file.read((char *)&order.prepared, sizeof(bool));
     file.read((char *)&order.riderAssigned, sizeof(bool));
     file.read((char *)&order.delivered, sizeof(bool));
-    file.read((char *)&nameLength, sizeof(size_t));
+    if (!file.read((char *)&nameLength, sizeof(size_t)) || nameLength > MAX_SAFE_STRING_LENGTH)
+        return false;
 
     order.restaurantName.resize(nameLength);
-
-    file.read(&order.restaurantName[0], nameLength);
+    if (nameLength > 0)
+        file.read(&order.restaurantName[0], nameLength);
 
     return file.good();
 }
 
 bool StorageManager::insertOrder(const Order &order)
 {
-    lock_guard<mutex> guard(storageMutex);
+    lock_guard<recursive_mutex> guard(storageMutex);
     if (order.orderId < 0 || order.restaurantId < 0 ||
         order.customerLocationId < 0 || order.priority < 0 ||
         order.prepTime < 0 || !isfinite(order.estimatedTravelTime) ||
@@ -380,7 +438,7 @@ bool StorageManager::insertOrder(const Order &order)
 
 bool StorageManager::getOrder(int id, Order &order)
 {
-    lock_guard<mutex> guard(storageMutex);
+    lock_guard<recursive_mutex> guard(storageMutex);
     ifstream file(dataFolder + "/orders.dat", ios::binary);
     if (!file)
         return false;
@@ -398,6 +456,7 @@ bool StorageManager::getOrder(int id, Order &order)
 
 bool StorageManager::updateOrder(const Order &order)
 {
+    lock_guard<recursive_mutex> guard(storageMutex);
     vector<Order> orders = getAllOrders();
     bool found = false;
     for (Order &current : orders)
@@ -413,13 +472,24 @@ bool StorageManager::updateOrder(const Order &order)
     ofstream file(dataFolder + "/orders.dat", ios::binary | ios::trunc);
     if (!file)
         return false;
+    bool writeOk = true;
     for (const Order &current : orders)
-        writeOrder(file, current);
-    return true;
+    {
+        if (!writeOrder(file, current))
+        {
+            writeOk = false;
+            break;
+        }
+    }
+    file.flush();
+    if (!file.good())
+        writeOk = false;
+    return writeOk;
 }
 
 bool StorageManager::deleteOrder(int id)
 {
+    lock_guard<recursive_mutex> guard(storageMutex);
     vector<Order> orders = getAllOrders();
     const bool found = orderIndex.contains(id);
     if (!found)
@@ -427,13 +497,24 @@ bool StorageManager::deleteOrder(int id)
     ofstream file(dataFolder + "/orders.dat", ios::binary | ios::trunc);
     if (!file)
         return false;
+    bool writeOk = true;
     for (const Order &order : orders)
     {
         if (order.orderId != id)
-            writeOrder(file, order);
+        {
+            if (!writeOrder(file, order))
+            {
+                writeOk = false;
+                break;
+            }
+        }
     }
-    orderIndex.remove(id);
-    return true;
+    file.flush();
+    if (!file.good())
+        writeOk = false;
+    if (writeOk)
+        orderIndex.remove(id);
+    return writeOk;
 }
 
 bool StorageManager::orderExists(int id) const
@@ -443,7 +524,7 @@ bool StorageManager::orderExists(int id) const
 
 vector<Order> StorageManager::getAllOrders()
 {
-    lock_guard<mutex> guard(storageMutex);
+    lock_guard<recursive_mutex> guard(storageMutex);
     vector<Order> result;
     ifstream file(dataFolder + "/orders.dat", ios::binary);
     if (!file)
@@ -478,7 +559,7 @@ bool StorageManager::readDelivery(ifstream &file, Delivery &delivery)
 
 bool StorageManager::insertDelivery(const Delivery &delivery)
 {
-    lock_guard<mutex> guard(storageMutex);
+    lock_guard<recursive_mutex> guard(storageMutex);
     if (delivery.orderId < 0 || delivery.riderId < 0 ||
         !isfinite(delivery.travelTime) || delivery.travelTime < 0.0 ||
         deliveryIndex.contains(delivery.orderId))
@@ -494,7 +575,7 @@ bool StorageManager::insertDelivery(const Delivery &delivery)
 
 bool StorageManager::getDelivery(int orderId, Delivery &delivery)
 {
-    lock_guard<mutex> guard(storageMutex);
+    lock_guard<recursive_mutex> guard(storageMutex);
     ifstream file(dataFolder + "/deliveries.dat", ios::binary);
     if (!file)
         return false;
@@ -512,6 +593,7 @@ bool StorageManager::getDelivery(int orderId, Delivery &delivery)
 
 bool StorageManager::updateDelivery(const Delivery &delivery)
 {
+    lock_guard<recursive_mutex> guard(storageMutex);
     vector<Delivery> deliveries = getAllDeliveries();
     bool found = false;
     for (Delivery &current : deliveries)
@@ -527,13 +609,24 @@ bool StorageManager::updateDelivery(const Delivery &delivery)
     ofstream file(dataFolder + "/deliveries.dat", ios::binary | ios::trunc);
     if (!file)
         return false;
+    bool writeOk = true;
     for (const Delivery &current : deliveries)
-        writeDelivery(file, current);
-    return true;
+    {
+        if (!writeDelivery(file, current))
+        {
+            writeOk = false;
+            break;
+        }
+    }
+    file.flush();
+    if (!file.good())
+        writeOk = false;
+    return writeOk;
 }
 
 bool StorageManager::deleteDelivery(int orderId)
 {
+    lock_guard<recursive_mutex> guard(storageMutex);
     vector<Delivery> deliveries = getAllDeliveries();
     const bool found = deliveryIndex.contains(orderId);
     if (!found)
@@ -541,13 +634,24 @@ bool StorageManager::deleteDelivery(int orderId)
     ofstream file(dataFolder + "/deliveries.dat", ios::binary | ios::trunc);
     if (!file)
         return false;
+    bool writeOk = true;
     for (const Delivery &delivery : deliveries)
     {
         if (delivery.orderId != orderId)
-            writeDelivery(file, delivery);
+        {
+            if (!writeDelivery(file, delivery))
+            {
+                writeOk = false;
+                break;
+            }
+        }
     }
-    deliveryIndex.remove(orderId);
-    return true;
+    file.flush();
+    if (!file.good())
+        writeOk = false;
+    if (writeOk)
+        deliveryIndex.remove(orderId);
+    return writeOk;
 }
 
 bool StorageManager::deliveryExists(int orderId) const
@@ -557,7 +661,7 @@ bool StorageManager::deliveryExists(int orderId) const
 
 vector<Delivery> StorageManager::getAllDeliveries()
 {
-    lock_guard<mutex> guard(storageMutex);
+    lock_guard<recursive_mutex> guard(storageMutex);
     vector<Delivery> result;
     ifstream file(dataFolder + "/deliveries.dat", ios::binary);
     if (!file)
@@ -576,6 +680,7 @@ bool StorageManager::writeRider(ofstream &file, const Rider &rider)
     file.write((char *)&rider.id, sizeof(int));
     file.write((char *)&rider.rating, sizeof(double));
     file.write((char *)&rider.assignedOrderId, sizeof(int));
+    file.write((char *)&rider.locationId, sizeof(int));
     file.write((char *)&nameLength, sizeof(size_t));
     file.write(rider.name.c_str(), nameLength);
     file.write((char *)&statusLength, sizeof(size_t));
@@ -586,27 +691,32 @@ bool StorageManager::writeRider(ofstream &file, const Rider &rider)
 
 bool StorageManager::readRider(ifstream &file, Rider &rider)
 {
-    size_t nameLength;
-    size_t statusLength;
+    size_t nameLength = 0;
+    size_t statusLength = 0;
 
     if (!file.read((char *)&rider.id, sizeof(int)))
         return false;
 
     file.read((char *)&rider.rating, sizeof(double));
     file.read((char *)&rider.assignedOrderId, sizeof(int));
-    file.read((char *)&nameLength, sizeof(size_t));
+    file.read((char *)&rider.locationId, sizeof(int));
+    if (!file.read((char *)&nameLength, sizeof(size_t)) || nameLength > MAX_SAFE_STRING_LENGTH)
+        return false;
     rider.name.resize(nameLength);
-    file.read(&rider.name[0], nameLength);
-    file.read((char *)&statusLength, sizeof(size_t));
+    if (nameLength > 0)
+        file.read(&rider.name[0], nameLength);
+    if (!file.read((char *)&statusLength, sizeof(size_t)) || statusLength > MAX_SAFE_STRING_LENGTH)
+        return false;
     rider.status.resize(statusLength);
-    file.read(&rider.status[0], statusLength);
+    if (statusLength > 0)
+        file.read(&rider.status[0], statusLength);
 
     return file.good();
 }
 
 bool StorageManager::insertRider(const Rider &rider)
 {
-    lock_guard<mutex> guard(storageMutex);
+    lock_guard<recursive_mutex> guard(storageMutex);
     if (rider.id < 0 || rider.name.empty() || rider.rating < 0.0 ||
         rider.rating > 5.0 || riderIndex.contains(rider.id))
         return false;
@@ -621,7 +731,7 @@ bool StorageManager::insertRider(const Rider &rider)
 
 bool StorageManager::getRider(int id, Rider &rider)
 {
-    lock_guard<mutex> guard(storageMutex);
+    lock_guard<recursive_mutex> guard(storageMutex);
     ifstream file(dataFolder + "/riders.dat", ios::binary);
     if (!file)
         return false;
@@ -639,6 +749,7 @@ bool StorageManager::getRider(int id, Rider &rider)
 
 bool StorageManager::updateRider(const Rider &rider)
 {
+    lock_guard<recursive_mutex> guard(storageMutex);
     vector<Rider> riders = getAllRiders();
     bool found = false;
     for (Rider &current : riders)
@@ -654,13 +765,24 @@ bool StorageManager::updateRider(const Rider &rider)
     ofstream file(dataFolder + "/riders.dat", ios::binary | ios::trunc);
     if (!file)
         return false;
+    bool writeOk = true;
     for (const Rider &current : riders)
-        writeRider(file, current);
-    return true;
+    {
+        if (!writeRider(file, current))
+        {
+            writeOk = false;
+            break;
+        }
+    }
+    file.flush();
+    if (!file.good())
+        writeOk = false;
+    return writeOk;
 }
 
 bool StorageManager::deleteRider(int id)
 {
+    lock_guard<recursive_mutex> guard(storageMutex);
     vector<Rider> riders = getAllRiders();
     const bool found = riderIndex.contains(id);
     if (!found)
@@ -668,13 +790,24 @@ bool StorageManager::deleteRider(int id)
     ofstream file(dataFolder + "/riders.dat", ios::binary | ios::trunc);
     if (!file)
         return false;
+    bool writeOk = true;
     for (const Rider &rider : riders)
     {
         if (rider.id != id)
-            writeRider(file, rider);
+        {
+            if (!writeRider(file, rider))
+            {
+                writeOk = false;
+                break;
+            }
+        }
     }
-    riderIndex.remove(id);
-    return true;
+    file.flush();
+    if (!file.good())
+        writeOk = false;
+    if (writeOk)
+        riderIndex.remove(id);
+    return writeOk;
 }
 
 bool StorageManager::riderExists(int id) const
@@ -684,7 +817,7 @@ bool StorageManager::riderExists(int id) const
 
 vector<Rider> StorageManager::getAllRiders()
 {
-    lock_guard<mutex> guard(storageMutex);
+    lock_guard<recursive_mutex> guard(storageMutex);
     vector<Rider> result;
     ifstream file(dataFolder + "/riders.dat", ios::binary);
     if (!file)

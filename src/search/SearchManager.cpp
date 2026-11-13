@@ -22,9 +22,15 @@ void SearchManager::addRestaurant(const string &name)
     if (name.empty() || !containsAlphabeticCharacter(name) || searchRestaurant(name))
         return;
 
-    trie.insert(name);
     Restaurant restaurant(static_cast<int>(restaurants.size()), name, -1);
+    trie.insert(name, restaurant.id);
     restaurants.push_back(restaurant);
+}
+
+void SearchManager::clear()
+{
+    restaurants.clear();
+    trie.clear();
 }
 
 bool SearchManager::loadRestaurant(const string &filename)
@@ -40,13 +46,23 @@ bool SearchManager::loadRestaurant(const string &filename)
 
     while (getline(fin, line))
     {
+        if (line.empty())
+            continue;
+        if (line.back() == '\r')
+            line.pop_back();
+        if (line.empty())
+            continue;
+
         stringstream ss(line);
         string idToken;
         string name;
         string locationToken;
         if (!getline(ss, idToken, ',') || !getline(ss, name, ',') ||
             !getline(ss, locationToken))
-            return false;
+            continue;
+
+        if (!locationToken.empty() && locationToken.back() == '\r')
+            locationToken.pop_back();
 
         int id = -1;
         int locationId = -1;
@@ -78,7 +94,7 @@ bool SearchManager::loadRestaurant(const string &filename)
 
     for (const Restaurant &restaurant : loaded)
     {
-        trie.insert(restaurant.name);
+        trie.insert(restaurant.name, restaurant.id);
         restaurants.push_back(restaurant);
     }
 
@@ -134,6 +150,16 @@ const Restaurant *SearchManager::getRestaurantById(int restaurantId) const
     for (const Restaurant &restaurant : restaurants)
     {
         if (restaurant.id == restaurantId)
+            return &restaurant;
+    }
+    return nullptr;
+}
+
+const Restaurant *SearchManager::getRestaurantByName(const string &name) const
+{
+    for (const Restaurant &restaurant : restaurants)
+    {
+        if (restaurant.name == name)
             return &restaurant;
     }
     return nullptr;

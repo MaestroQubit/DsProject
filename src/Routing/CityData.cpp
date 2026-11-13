@@ -3,10 +3,47 @@
 #include <sstream>
 #include <stdexcept>
 #include <vector>
+#include <cmath>
+#include <filesystem>
 
 using namespace std;
 
 static vector<LocationInfo> locationData;
+
+static string resolvePath(const string &path)
+{
+    if (path.empty())
+        return path;
+    if (filesystem::exists(path))
+        return path;
+    string p1 = "../" + path;
+    if (filesystem::exists(p1))
+        return p1;
+    string p2 = "../../" + path;
+    if (filesystem::exists(p2))
+        return p2;
+    string p3 = "../../../" + path;
+    if (filesystem::exists(p3))
+        return p3;
+    return path;
+}
+
+static string resolveDirectory(const string &dir)
+{
+    if (!dir.empty() && filesystem::exists(dir))
+        return dir;
+    const char *candidates[] = {"data", "../data", "../../data", "../../../data"};
+    for (const char *cand : candidates)
+    {
+        if (filesystem::exists(cand) && filesystem::is_directory(cand))
+        {
+            if (filesystem::exists(string(cand) + "/locations.csv"))
+                return cand;
+        }
+    }
+    return dir.empty() ? "data" : dir;
+}
+
 const LocationInfo *getLocationCatalog(int &count)
 {
     count = static_cast<int>(locationData.size());
@@ -15,52 +52,75 @@ const LocationInfo *getLocationCatalog(int &count)
     return locationData.data();
 }
 
-void buildCityMap(Graph &graph)
+bool loadLocations(const string &filename, vector<LocationInfo> &locations)
 {
-    locationData.clear();
-    ifstream locationFile("data/locations.csv");
+    locations.clear();
+    string resolved = resolvePath(filename);
+    ifstream locationFile(resolved);
     if (!locationFile)
-        return;
+        return false;
 
     string line;
-
     if (!getline(locationFile, line))
-        return;
+        return false;
 
     while (getline(locationFile, line))
     {
+        if (line.empty())
+            continue;
+        if (line.back() == '\r')
+            line.pop_back();
+        if (line.empty())
+            continue;
+
         stringstream ss(line);
         string token;
         LocationInfo info;
 
         if (!getline(ss, token, ',') || !getline(ss, info.name, ',') ||
             !getline(ss, info.type))
-            return;
+            return false;
+
+        if (!info.type.empty() && info.type.back() == '\r')
+            info.type.pop_back();
 
         try
         {
             info.locationId = stoi(token);
         }
-        catch (const invalid_argument &)
+        catch (...)
         {
-            return;
-        }
-        catch (const out_of_range &)
-        {
-            return;
+            return false;
         }
 
-        locationData.push_back(info);
+        if (info.locationId < 0)
+            return false;
 
-        graph.addVertex(info.name);
+        locations.push_back(info);
     }
-    locationFile.close();
-    ifstream roadFile("data/roads.csv");
-    if (!roadFile || !getline(roadFile, line))
-        return;
+    return !locations.empty();
+}
+
+bool loadRoads(const string &filename, Graph &graph)
+{
+    string resolved = resolvePath(filename);
+    ifstream roadFile(resolved);
+    if (!roadFile)
+        return false;
+
+    string line;
+    if (!getline(roadFile, line))
+        return false;
 
     while (getline(roadFile, line))
     {
+        if (line.empty())
+            continue;
+        if (line.back() == '\r')
+            line.pop_back();
+        if (line.empty())
+            continue;
+
         stringstream ss(line);
         string token;
 
@@ -69,27 +129,50 @@ void buildCityMap(Graph &graph)
         double time = 0.0;
 
         if (!getline(ss, token, ','))
-            return;
+            return false;
         try
         {
             source = stoi(token);
             if (!getline(ss, token, ','))
-                return;
+                return false;
             destination = stoi(token);
             if (!getline(ss, token))
-                return;
+                return false;
+            if (!token.empty() && token.back() == '\r')
+                token.pop_back();
             time = stod(token);
         }
-        catch (const invalid_argument &)
+        catch (...)
         {
-            return;
-        }
-        catch (const out_of_range &)
-        {
-            return;
+            return false;
         }
 
-        graph.addEdge(source, destination, time);
+        if (source < 0 || destination < 0 || time < 0 || !isfinite(time))
+            return false;
+
+        if (!graph.addEdge(source, destination, time))
+            return false;
     }
-    roadFile.close();
+    return true;
+}
+
+bool buildCityMap(Graph &graph, const string &dataDir)
+{
+    locationData.clear();
+    string dir = resolveDirectory(dataDir);
+    string locPath = dir + "/locations.csv";
+    string roadPath = dir + "/roads.csv";
+
+    if (!loadLocations(locPath, locationData))
+        return false;
+
+    for (const LocationInfo &info : locationData)
+    {
+        graph.addVertex(info.name, info.locationId);
+    }
+
+    if (!loadRoads(roadPath, graph))
+        return false;
+
+    return true;
 }

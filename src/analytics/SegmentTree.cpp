@@ -57,14 +57,14 @@ double SegmentTree::queryMax(int node, int start, int end, int left, int right) 
 
 double SegmentTree::rangeSum(int left, int right) const
 {
-    if (values.empty())
+    if (values.empty() || left < 0 || right >= static_cast<int>(values.size()) || left > right)
         return 0.0;
     return querySum(1, 0, values.size() - 1, left, right);
 }
 
 double SegmentTree::rangeMax(int left, int right) const
 {
-    if (values.empty())
+    if (values.empty() || left < 0 || right >= static_cast<int>(values.size()) || left > right)
         return 0.0;
     return queryMax(1, 0, values.size() - 1, left, right);
 }
@@ -88,7 +88,7 @@ void SegmentTree::updateNode(int node, int start, int end, int index, double val
 
 void SegmentTree::update(int index, double value)
 {
-    if (values.empty())
+    if (values.empty() || index < 0 || index >= static_cast<int>(values.size()))
         return;
     values[index] = value;
     updateNode(1, 0, values.size() - 1, index, value);

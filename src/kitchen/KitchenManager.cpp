@@ -9,11 +9,18 @@ OrderQueue::OrderQueue() {
 }
 
 OrderQueue::~OrderQueue() {
+    clear();
+}
+
+void OrderQueue::clear() {
     while (front != nullptr) {
         QueueNode* temp = front;
         front = front->next;
         delete temp;
     }
+    rear = nullptr;
+    count = 0;
+    load = 0;
 }
 
 void OrderQueue::enqueue(const KitchenOrder& order) {
@@ -46,6 +53,42 @@ bool OrderQueue::dequeue(KitchenOrder& result) {
     count--;
     load -= result.prepTime;
     return true;
+}
+
+bool OrderQueue::peek(KitchenOrder& result) const {
+    if (front == nullptr) {
+        return false;
+    }
+    result = front->order;
+    return true;
+}
+
+bool OrderQueue::removeOrder(int orderId, KitchenOrder& removed) {
+    QueueNode* current = front;
+    QueueNode* prev = nullptr;
+    while (current != nullptr) {
+        if (current->order.orderId == orderId) {
+            removed = current->order;
+            if (prev == nullptr) {
+                front = current->next;
+                if (front == nullptr) {
+                    rear = nullptr;
+                }
+            } else {
+                prev->next = current->next;
+                if (current == rear) {
+                    rear = prev;
+                }
+            }
+            delete current;
+            count--;
+            load -= removed.prepTime;
+            return true;
+        }
+        prev = current;
+        current = current->next;
+    }
+    return false;
 }
 
 bool OrderQueue::isEmpty() const {
@@ -100,6 +143,29 @@ bool KitchenManager::completeOrder(int station, KitchenOrder& readyOrder) {
         return false;
     }
     return stations[station].dequeue(readyOrder);
+}
+
+bool KitchenManager::peekStationOrder(int station, KitchenOrder& order) const {
+    if (station < 0 || station >= STATIONS) {
+        return false;
+    }
+    return stations[station].peek(order);
+}
+
+bool KitchenManager::removeOrder(int orderId, KitchenOrder& removed) {
+    for (int i = 0; i < STATIONS; i++) {
+        if (stations[i].removeOrder(orderId, removed)) {
+            return true;
+        }
+    }
+    return heap.removeOrder(orderId, removed);
+}
+
+void KitchenManager::clear() {
+    heap.clear();
+    for (int i = 0; i < STATIONS; i++) {
+        stations[i].clear();
+    }
 }
 
 int KitchenManager::pendingOrders() const {

@@ -26,7 +26,9 @@ public:
     void insert(const KitchenOrder& order);
     bool extractMin(KitchenOrder& result);
     bool peekMin(KitchenOrder& result) const;
+    bool removeOrder(int orderId, KitchenOrder& removed);
     bool isEmpty() const;
+    void clear();
     int size() const;
 };
 

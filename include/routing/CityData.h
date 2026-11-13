@@ -14,4 +14,5 @@ struct LocationInfo
 
 bool loadLocations(const std::string &filename, std::vector<LocationInfo> &locations);
 bool loadRoads(const std::string &filename, Graph &graph);
-void buildCityMap(Graph &graph);
+bool buildCityMap(Graph &graph, const std::string &dataDir = "data");
+const LocationInfo *getLocationCatalog(int &count);

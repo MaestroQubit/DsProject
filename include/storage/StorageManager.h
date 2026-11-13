@@ -23,7 +23,7 @@ private:
     BPlusTree deliveryIndex;
     BPlusTree riderIndex;
 
-    mutable std::mutex storageMutex;
+    mutable std::recursive_mutex storageMutex;
 
     bool writeRestaurant(std::ofstream &file, const Restaurant &restaurant);
     bool readRestaurant(std::ifstream &file, Restaurant &restaurant);

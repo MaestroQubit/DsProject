@@ -1,0 +1,12 @@
+C:/Users/Asus/OneDrive/Desktop/Coding/VSCode-Insider/DsProject/build/CMakeFiles/ds_core.dir
+C:/Users/Asus/OneDrive/Desktop/Coding/VSCode-Insider/DsProject/build/CMakeFiles/FoodDeliveryApp.dir
+C:/Users/Asus/OneDrive/Desktop/Coding/VSCode-Insider/DsProject/build/CMakeFiles/backend_tests.dir
+C:/Users/Asus/OneDrive/Desktop/Coding/VSCode-Insider/DsProject/build/CMakeFiles/test.dir
+C:/Users/Asus/OneDrive/Desktop/Coding/VSCode-Insider/DsProject/build/CMakeFiles/edit_cache.dir
+C:/Users/Asus/OneDrive/Desktop/Coding/VSCode-Insider/DsProject/build/CMakeFiles/rebuild_cache.dir
+C:/Users/Asus/OneDrive/Desktop/Coding/VSCode-Insider/DsProject/build/CMakeFiles/ds_core_autogen_timestamp_deps.dir
+C:/Users/Asus/OneDrive/Desktop/Coding/VSCode-Insider/DsProject/build/CMakeFiles/ds_core_autogen.dir
+C:/Users/Asus/OneDrive/Desktop/Coding/VSCode-Insider/DsProject/build/CMakeFiles/FoodDeliveryApp_autogen_timestamp_deps.dir
+C:/Users/Asus/OneDrive/Desktop/Coding/VSCode-Insider/DsProject/build/CMakeFiles/FoodDeliveryApp_autogen.dir
+C:/Users/Asus/OneDrive/Desktop/Coding/VSCode-Insider/DsProject/build/CMakeFiles/backend_tests_autogen_timestamp_deps.dir
+C:/Users/Asus/OneDrive/Desktop/Coding/VSCode-Insider/DsProject/build/CMakeFiles/backend_tests_autogen.dir

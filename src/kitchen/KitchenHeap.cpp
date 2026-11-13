@@ -87,8 +87,30 @@ bool KitchenHeap::peekMin(KitchenOrder& result) const {
     return true;
 }
 
+bool KitchenHeap::removeOrder(int orderId, KitchenOrder& removed) {
+    for (size_t i = 0; i < data.size(); i++) {
+        if (data[i].orderId == orderId) {
+            removed = data[i];
+            if (i == data.size() - 1) {
+                data.pop_back();
+                return true;
+            }
+            data[i] = data.back();
+            data.pop_back();
+            heapifyDown(i);
+            heapifyUp(i);
+            return true;
+        }
+    }
+    return false;
+}
+
 bool KitchenHeap::isEmpty() const {
     return data.empty();
+}
+
+void KitchenHeap::clear() {
+    data.clear();
 }
 
 int KitchenHeap::size() const {

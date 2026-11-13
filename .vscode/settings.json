@@ -1,0 +1,12 @@
+{
+    "cmake.configureOnOpen": false,
+    "cmake.autoSelectActiveFolder": false,
+    "cmake.ignoreCMakeListsMissing": true,
+    "cmake.showOptionsMovedNotification": false,
+    "code-runner.clearPreviousOutput": true,
+    "code-runner.saveAllFilesBeforeRun": true,
+    "code-runner.runInTerminal": true,
+    "code-runner.executorMap": {
+        "cpp": ".\\build.bat"
+    }
+}

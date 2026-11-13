@@ -30,6 +30,9 @@ private:
     void splitInternal(Node *node);
     void insertInParent(Node *left, int key, Node *right);
     void freeNode(Node *node);
+    void rebalanceLeaf(Node *leaf);
+    void rebalanceInternal(Node *node);
+    void updateKeyInAncestors(Node *node, int oldKey, int newKey);
 
 public:
     BPlusTree();

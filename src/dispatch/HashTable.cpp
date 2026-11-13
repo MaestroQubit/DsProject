@@ -9,6 +9,10 @@ HashTable::HashTable(std::size_t initialCapacity)
 }
 
 HashTable::~HashTable() {
+    clear();
+}
+
+void HashTable::clear() {
     for (std::size_t i = 0; i < buckets.size(); ++i) {
         Node* current = buckets[i];
         while (current != nullptr) {
@@ -16,7 +20,9 @@ HashTable::~HashTable() {
             delete current;
             current = next;
         }
+        buckets[i] = nullptr;
     }
+    elementCount = 0;
 }
 
 std::size_t HashTable::bucketIndex(int id) const {

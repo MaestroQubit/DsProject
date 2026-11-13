@@ -23,9 +23,12 @@ public:
 
     void enqueue(const KitchenOrder& order);
     bool dequeue(KitchenOrder& result);
+    bool peek(KitchenOrder& result) const;
+    bool removeOrder(int orderId, KitchenOrder& removed);
     bool isEmpty() const;
     int size() const;
     int totalLoad() const;
+    void clear();
     void print() const;
 };
 
@@ -41,6 +44,9 @@ public:
     void addOrder(int orderId, int restaurantId, int prepTime, int priority);
     void sendToStations();
     bool completeOrder(int station, KitchenOrder& readyOrder);
+    bool peekStationOrder(int station, KitchenOrder& order) const;
+    bool removeOrder(int orderId, KitchenOrder& removed);
+    void clear();
     int pendingOrders() const;
     int stationQueueSize(int station) const;
     int stationCount() const;

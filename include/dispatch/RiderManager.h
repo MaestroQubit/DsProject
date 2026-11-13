@@ -26,6 +26,7 @@ public:
     bool updateRider(const Rider& rider);
     bool deleteRider(int riderId);
     bool updateRiderStatus(int riderId, const std::string& status);
+    void clear();
 
     std::vector<Rider> getAllRiders() const;
     std::vector<Rider> getAvailableRiders() const;
