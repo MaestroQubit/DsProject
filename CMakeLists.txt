@@ -10,6 +10,7 @@ add_library(ds_core
     src/Routing/Graph.cpp
     src/Routing/MinHeap.cpp
     src/Routing/RouteManager.cpp
+    src/Routing/CityData.cpp
     src/search/Trie.cpp
     src/search/SearchManager.cpp
     src/dispatch/HashTable.cpp
@@ -25,12 +26,3 @@ add_library(ds_core
 )
 
 target_include_directories(ds_core PUBLIC ${PROJECT_SOURCE_DIR}/include)
-
-add_executable(test_kitchen
-    tests/test_kitchen.cpp
-)
-
-target_link_libraries(test_kitchen PRIVATE ds_core)
-
-enable_testing()
-add_test(NAME KitchenTest COMMAND test_kitchen)

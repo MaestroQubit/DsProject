@@ -1,5 +1,6 @@
 #include "../../include/storage/StorageManager.h"
 
+#include <cmath>
 #include <filesystem>
 
 using namespace std;
@@ -22,10 +23,16 @@ void StorageManager::setDataFolder(const string &folder)
 bool StorageManager::initialize()
 {
     namespace fs = filesystem;
-    if (!fs::exists(dataFolder))
-        fs::create_directories(dataFolder);
-    rebuildIndexes();
-    return true;
+    try
+    {
+        if (!fs::exists(dataFolder) && !fs::create_directories(dataFolder))
+            return false;
+    }
+    catch (const fs::filesystem_error &)
+    {
+        return false;
+    }
+    return rebuildIndexes();
 }
 
 void StorageManager::clearIndexes()
@@ -93,6 +100,9 @@ bool StorageManager::readRestaurant(ifstream &file, Restaurant &restaurant)
 bool StorageManager::insertRestaurant(const Restaurant &restaurant)
 {
     lock_guard<mutex> guard(storageMutex);
+    if (restaurant.id < 0 || restaurant.name.empty() ||
+        restaurantIndex.contains(restaurant.id))
+        return false;
     ofstream file(dataFolder + "/restaurants.dat", ios::binary | ios::app);
     if (!file)
         return false;
@@ -112,8 +122,10 @@ bool StorageManager::getRestaurant(int id, Restaurant &result)
     while (readRestaurant(file, current))
     {
         if (current.id == id)
+        {
             result = current;
-        return true;
+            return true;
+        }
     }
     return false;
 }
@@ -121,11 +133,17 @@ bool StorageManager::getRestaurant(int id, Restaurant &result)
 bool StorageManager::updateRestaurant(const Restaurant &restaurant)
 {
     vector<Restaurant> restaurants = getAllRestaurants();
+    bool found = false;
     for (Restaurant &current : restaurants)
     {
         if (current.id == restaurant.id)
+        {
             current = restaurant;
+            found = true;
+        }
     }
+    if (!found)
+        return false;
     ofstream file(dataFolder + "/restaurants.dat", ios::binary | ios::trunc);
     if (!file)
         return false;
@@ -137,6 +155,9 @@ bool StorageManager::updateRestaurant(const Restaurant &restaurant)
 bool StorageManager::deleteRestaurant(int id)
 {
     vector<Restaurant> restaurants = getAllRestaurants();
+    const bool found = restaurantIndex.contains(id);
+    if (!found)
+        return false;
     ofstream file(dataFolder + "/restaurants.dat", ios::binary | ios::trunc);
     if (!file)
         return false;
@@ -205,6 +226,10 @@ bool StorageManager::readMenuItem(ifstream &file, MenuItem &item)
 bool StorageManager::insertMenuItem(const MenuItem &item)
 {
     lock_guard<mutex> guard(storageMutex);
+    if (item.id < 0 || item.restaurantId < 0 || item.name.empty() ||
+        item.category.empty() || item.price < 0.0 ||
+        menuItemIndex.contains(item.id))
+        return false;
     ofstream file(dataFolder + "/menuitems.dat", ios::binary | ios::app);
     if (!file)
         return false;
@@ -224,8 +249,10 @@ bool StorageManager::getMenuItem(int id, MenuItem &item)
     while (readMenuItem(file, current))
     {
         if (current.id == id)
+        {
             item = current;
-        return true;
+            return true;
+        }
     }
     return false;
 }
@@ -233,11 +260,17 @@ bool StorageManager::getMenuItem(int id, MenuItem &item)
 bool StorageManager::updateMenuItem(const MenuItem &item)
 {
     vector<MenuItem> items = getAllMenuItems();
+    bool found = false;
     for (MenuItem &current : items)
     {
         if (current.id == item.id)
+        {
             current = item;
+            found = true;
+        }
     }
+    if (!found)
+        return false;
     ofstream file(dataFolder + "/menuitems.dat", ios::binary | ios::trunc);
     if (!file)
         return false;
@@ -249,6 +282,9 @@ bool StorageManager::updateMenuItem(const MenuItem &item)
 bool StorageManager::deleteMenuItem(int id)
 {
     vector<MenuItem> items = getAllMenuItems();
+    const bool found = menuItemIndex.contains(id);
+    if (!found)
+        return false;
     ofstream file(dataFolder + "/menuitems.dat", ios::binary | ios::trunc);
     if (!file)
         return false;
@@ -327,6 +363,12 @@ bool StorageManager::readOrder(ifstream &file, Order &order)
 bool StorageManager::insertOrder(const Order &order)
 {
     lock_guard<mutex> guard(storageMutex);
+    if (order.orderId < 0 || order.restaurantId < 0 ||
+        order.customerLocationId < 0 || order.priority < 0 ||
+        order.prepTime < 0 || !isfinite(order.estimatedTravelTime) ||
+        order.estimatedTravelTime < 0.0 ||
+        orderIndex.contains(order.orderId))
+        return false;
     ofstream file(dataFolder + "/orders.dat", ios::binary | ios::app);
     if (!file)
         return false;
@@ -357,11 +399,17 @@ bool StorageManager::getOrder(int id, Order &order)
 bool StorageManager::updateOrder(const Order &order)
 {
     vector<Order> orders = getAllOrders();
+    bool found = false;
     for (Order &current : orders)
     {
         if (current.orderId == order.orderId)
+        {
             current = order;
+            found = true;
+        }
     }
+    if (!found)
+        return false;
     ofstream file(dataFolder + "/orders.dat", ios::binary | ios::trunc);
     if (!file)
         return false;
@@ -373,6 +421,9 @@ bool StorageManager::updateOrder(const Order &order)
 bool StorageManager::deleteOrder(int id)
 {
     vector<Order> orders = getAllOrders();
+    const bool found = orderIndex.contains(id);
+    if (!found)
+        return false;
     ofstream file(dataFolder + "/orders.dat", ios::binary | ios::trunc);
     if (!file)
         return false;
@@ -428,6 +479,10 @@ bool StorageManager::readDelivery(ifstream &file, Delivery &delivery)
 bool StorageManager::insertDelivery(const Delivery &delivery)
 {
     lock_guard<mutex> guard(storageMutex);
+    if (delivery.orderId < 0 || delivery.riderId < 0 ||
+        !isfinite(delivery.travelTime) || delivery.travelTime < 0.0 ||
+        deliveryIndex.contains(delivery.orderId))
+        return false;
     ofstream file(dataFolder + "/deliveries.dat", ios::binary | ios::app);
     if (!file)
         return false;
@@ -458,11 +513,17 @@ bool StorageManager::getDelivery(int orderId, Delivery &delivery)
 bool StorageManager::updateDelivery(const Delivery &delivery)
 {
     vector<Delivery> deliveries = getAllDeliveries();
+    bool found = false;
     for (Delivery &current : deliveries)
     {
         if (current.orderId == delivery.orderId)
+        {
             current = delivery;
+            found = true;
+        }
     }
+    if (!found)
+        return false;
     ofstream file(dataFolder + "/deliveries.dat", ios::binary | ios::trunc);
     if (!file)
         return false;
@@ -474,6 +535,9 @@ bool StorageManager::updateDelivery(const Delivery &delivery)
 bool StorageManager::deleteDelivery(int orderId)
 {
     vector<Delivery> deliveries = getAllDeliveries();
+    const bool found = deliveryIndex.contains(orderId);
+    if (!found)
+        return false;
     ofstream file(dataFolder + "/deliveries.dat", ios::binary | ios::trunc);
     if (!file)
         return false;
@@ -543,6 +607,9 @@ bool StorageManager::readRider(ifstream &file, Rider &rider)
 bool StorageManager::insertRider(const Rider &rider)
 {
     lock_guard<mutex> guard(storageMutex);
+    if (rider.id < 0 || rider.name.empty() || rider.rating < 0.0 ||
+        rider.rating > 5.0 || riderIndex.contains(rider.id))
+        return false;
     ofstream file(dataFolder + "/riders.dat", ios::binary | ios::app);
     if (!file)
         return false;
@@ -573,11 +640,17 @@ bool StorageManager::getRider(int id, Rider &rider)
 bool StorageManager::updateRider(const Rider &rider)
 {
     vector<Rider> riders = getAllRiders();
+    bool found = false;
     for (Rider &current : riders)
     {
         if (current.id == rider.id)
+        {
             current = rider;
+            found = true;
+        }
     }
+    if (!found)
+        return false;
     ofstream file(dataFolder + "/riders.dat", ios::binary | ios::trunc);
     if (!file)
         return false;
@@ -589,6 +662,9 @@ bool StorageManager::updateRider(const Rider &rider)
 bool StorageManager::deleteRider(int id)
 {
     vector<Rider> riders = getAllRiders();
+    const bool found = riderIndex.contains(id);
+    if (!found)
+        return false;
     ofstream file(dataFolder + "/riders.dat", ios::binary | ios::trunc);
     if (!file)
         return false;

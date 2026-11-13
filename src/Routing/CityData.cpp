@@ -1,6 +1,7 @@
 #include "../../include/routing/CityData.h"
 #include <fstream>
 #include <sstream>
+#include <stdexcept>
 #include <vector>
 
 using namespace std;
@@ -14,13 +15,17 @@ const LocationInfo *getLocationCatalog(int &count)
     return locationData.data();
 }
 
-void buildCityMap(Graph &graph, const string &restaurantFile)
+void buildCityMap(Graph &graph)
 {
     locationData.clear();
     ifstream locationFile("data/locations.csv");
+    if (!locationFile)
+        return;
+
     string line;
 
-    getline(locationFile, line);
+    if (!getline(locationFile, line))
+        return;
 
     while (getline(locationFile, line))
     {
@@ -28,34 +33,61 @@ void buildCityMap(Graph &graph, const string &restaurantFile)
         string token;
         LocationInfo info;
 
-        getline(ss, token, ',');
-        info.locationId = stoi(token);
-        getline(ss, info.name, ',');
-        getline(ss, info.type, ',');
+        if (!getline(ss, token, ',') || !getline(ss, info.name, ',') ||
+            !getline(ss, info.type))
+            return;
+
+        try
+        {
+            info.locationId = stoi(token);
+        }
+        catch (const invalid_argument &)
+        {
+            return;
+        }
+        catch (const out_of_range &)
+        {
+            return;
+        }
+
         locationData.push_back(info);
 
         graph.addVertex(info.name);
     }
-
     locationFile.close();
     ifstream roadFile("data/roads.csv");
-    getline(roadFile, line);
+    if (!roadFile || !getline(roadFile, line))
+        return;
 
     while (getline(roadFile, line))
     {
         stringstream ss(line);
         string token;
 
-        int source;
-        int destination;
-        double time;
+        int source = -1;
+        int destination = -1;
+        double time = 0.0;
 
-        getline(ss, token, ',');
-        source = stoi(token);
-        getline(ss, token, ',');
-        destination = stoi(token);
-        getline(ss, token, ',');
-        time = stod(token);
+        if (!getline(ss, token, ','))
+            return;
+        try
+        {
+            source = stoi(token);
+            if (!getline(ss, token, ','))
+                return;
+            destination = stoi(token);
+            if (!getline(ss, token))
+                return;
+            time = stod(token);
+        }
+        catch (const invalid_argument &)
+        {
+            return;
+        }
+        catch (const out_of_range &)
+        {
+            return;
+        }
 
         graph.addEdge(source, destination, time);
     }

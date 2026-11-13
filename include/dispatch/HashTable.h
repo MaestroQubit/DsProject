@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../include/models/rider.h"
+#include "../models/Rider.h"
 #include <cstddef>
 #include <string>
 #include <vector>

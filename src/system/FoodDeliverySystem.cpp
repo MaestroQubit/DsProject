@@ -1,5 +1,7 @@
 #include "../../include/system/FoodDeliverySystem.h"
 #include "../../include/routing/CityData.h"
+#include <algorithm>
+#include <cmath>
 #include <vector>
 using namespace std;
 
@@ -9,6 +11,17 @@ FoodDeliverySystem::FoodDeliverySystem() : cityGraph(), routeManager(cityGraph)
     storageManager.initialize();
     buildCityMap(cityGraph);
     loadRestaurants("data/restaurants.csv");
+
+    for (const Rider &rider : storageManager.getAllRiders())
+        riderManager.insertRider(rider);
+
+    for (const Order &order : storageManager.getAllOrders())
+    {
+        if (addOrder(order))
+            nextOrderId = max(nextOrderId, order.orderId + 1);
+    }
+
+    deliveries = storageManager.getAllDeliveries();
 }
 
 SearchManager &FoodDeliverySystem::getSearchManager()
@@ -143,7 +156,18 @@ int FoodDeliverySystem::generateOrderId()
 
 bool FoodDeliverySystem::addOrder(const Order &order)
 {
+    if (order.orderId < 0 || order.restaurantId < 0 ||
+        order.customerLocationId < 0 || order.priority < 0 ||
+        order.customerLocationId >= cityGraph.getVertexCount() ||
+        order.prepTime < 0 || !isfinite(order.estimatedTravelTime) ||
+        order.estimatedTravelTime < 0.0 ||
+        getOrderById(order.orderId) != nullptr ||
+        searchManager.getRestaurantById(order.restaurantId) == nullptr)
+        return false;
+
     orders.push_back(order);
+    kitchenManager.addOrder(order.orderId, order.restaurantId, order.prepTime,
+                            order.priority);
     return true;
 }
 
@@ -170,7 +194,9 @@ bool FoodDeliverySystem::addRoad(int source, int destination, double travelTime)
 int FoodDeliverySystem::createOrder(int restaurantId, int customerLocationId, int priority, int prepTime)
 {
     const Restaurant *restaurant = searchManager.getRestaurantById(restaurantId);
-    if (restaurant == nullptr)
+    if (restaurant == nullptr || customerLocationId < 0 ||
+        customerLocationId >= cityGraph.getVertexCount() || priority < 0 ||
+        prepTime < 0)
         return -1;
     int id = generateOrderId();
     Order order(id, restaurant->id, restaurant->name, customerLocationId, priority, prepTime);
@@ -182,7 +208,7 @@ int FoodDeliverySystem::createOrder(int restaurantId, int customerLocationId, in
 bool FoodDeliverySystem::markOrderPrepared(int orderId)
 {
     Order *order = getOrderById(orderId);
-    if (order == nullptr)
+    if (order == nullptr || order->delivered)
         return false;
     order->prepared = true;
     return true;
@@ -192,7 +218,8 @@ bool FoodDeliverySystem::assignRiderToOrder(int orderId, const vector<RiderDista
 {
     Order *order =
         getOrderById(orderId);
-    if (order == nullptr)
+    if (order == nullptr || order->delivered || !order->prepared ||
+        order->riderAssigned)
         return false;
     Rider rider;
     if (!riderManager.assignBestRider(orderId, distances, rider))
@@ -206,10 +233,17 @@ bool FoodDeliverySystem::completeOrder(int orderId)
 {
     Order *order =
         getOrderById(orderId);
-    if (order == nullptr)
+    if (order == nullptr || order->delivered || !order->riderAssigned)
         return false;
-    if (order->assignedRiderId != -1)
-        riderManager.completeDelivery(order->assignedRiderId);
+
+    Delivery *delivery = getDeliveryByOrderId(orderId);
+    if (delivery == nullptr)
+        return false;
+
+    if (!riderManager.completeDelivery(order->assignedRiderId))
+        return false;
+
+    delivery->completed = true;
     order->delivered = true;
     return true;
 }
@@ -236,7 +270,11 @@ bool FoodDeliverySystem::createDelivery(int orderId, int riderId, double travelT
 {
     Order *order =
         getOrderById(orderId);
-    if (order == nullptr)
+    Rider rider;
+    if (order == nullptr || order->delivered || !order->riderAssigned ||
+        order->assignedRiderId != riderId || !isfinite(travelTime) ||
+        travelTime < 0.0 || getDeliveryByOrderId(orderId) != nullptr ||
+        !riderManager.searchRider(riderId, rider) || rider.status != "Busy")
         return false;
     deliveries.push_back(
         Delivery(orderId, riderId, travelTime));

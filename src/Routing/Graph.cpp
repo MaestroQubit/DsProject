@@ -149,6 +149,9 @@ bool Graph::removeEdge(int u, int v)
 
 bool Graph::updateTraffic(int u, int v, double time)
 {
+    if (time < 0 || !isfinite(time))
+        return false;
+
     EdgeNode *edge = findEdge(u, v);
     if (!edge)
         return false;
@@ -165,6 +168,9 @@ bool Graph::closeRoad(int u, int v)
     if (!edge)
         return false;
     edge->open = false;
+    EdgeNode *reverse = findEdge(v, u);
+    if (reverse && reverse->roadId == edge->roadId)
+        reverse->open = false;
     return true;
 }
 
@@ -174,6 +180,9 @@ bool Graph::reopenRoad(int u, int v)
     if (!edge)
         return false;
     edge->open = true;
+    EdgeNode *reverse = findEdge(v, u);
+    if (reverse && reverse->roadId == edge->roadId)
+        reverse->open = true;
     return true;
 }
 

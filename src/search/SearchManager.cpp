@@ -1,6 +1,7 @@
 #include "../../include/search/SearchManager.h"
 #include <sstream>
 #include <fstream>
+#include <stdexcept>
 using namespace std;
 
 bool containsAlphabeticCharacter(const string &value)
@@ -31,20 +32,54 @@ bool SearchManager::loadRestaurant(const string &filename)
     ifstream fin(filename);
     if (!fin)
         return false;
+
+    vector<Restaurant> loaded;
     string line;
-    getline(fin, line);
+    if (!getline(fin, line))
+        return false;
+
     while (getline(fin, line))
     {
         stringstream ss(line);
-        string token;
-        getline(ss, token, ',');
-        int id = stoi(token);
+        string idToken;
         string name;
-        getline(ss, name, ',');
-        getline(ss, token, ',');
-        int locationId = stoi(token);
-        trie.insert(name);
-        restaurants.push_back(Restaurant(id, name, locationId));
+        string locationToken;
+        if (!getline(ss, idToken, ',') || !getline(ss, name, ',') ||
+            !getline(ss, locationToken))
+            return false;
+
+        int id = -1;
+        int locationId = -1;
+        try
+        {
+            id = stoi(idToken);
+            locationId = stoi(locationToken);
+        }
+        catch (const invalid_argument &)
+        {
+            return false;
+        }
+        catch (const out_of_range &)
+        {
+            return false;
+        }
+
+        if (id < 0 || name.empty() || !containsAlphabeticCharacter(name) ||
+            getRestaurantById(id) != nullptr)
+            return false;
+
+        for (const Restaurant &restaurant : loaded)
+        {
+            if (restaurant.id == id)
+                return false;
+        }
+        loaded.push_back(Restaurant(id, name, locationId));
+    }
+
+    for (const Restaurant &restaurant : loaded)
+    {
+        trie.insert(restaurant.name);
+        restaurants.push_back(restaurant);
     }
 
     return true;
@@ -77,22 +112,29 @@ std::vector<Restaurant> SearchManager::getAllRestaurants() const
 
 bool SearchManager::setRestaurantLocation(int restaurantId, int locationId)
 {
-    if (restaurantId < 0 || restaurantId >= static_cast<int>(restaurants.size()))
-        return false;
-    restaurants[restaurantId].locationId = locationId;
-    return true;
+    for (Restaurant &restaurant : restaurants)
+    {
+        if (restaurant.id == restaurantId)
+        {
+            restaurant.locationId = locationId;
+            return true;
+        }
+    }
+    return false;
 }
 
 int SearchManager::getRestaurantLocation(int restaurantId) const
 {
-    if (restaurantId < 0 || restaurantId >= static_cast<int>(restaurants.size()))
-        return -1;
-    return restaurants[restaurantId].locationId;
+    const Restaurant *restaurant = getRestaurantById(restaurantId);
+    return restaurant == nullptr ? -1 : restaurant->locationId;
 }
 
 const Restaurant *SearchManager::getRestaurantById(int restaurantId) const
 {
-    if (restaurantId < 0 || restaurantId >= static_cast<int>(restaurants.size()))
-        return nullptr;
-    return &restaurants[restaurantId];
+    for (const Restaurant &restaurant : restaurants)
+    {
+        if (restaurant.id == restaurantId)
+            return &restaurant;
+    }
+    return nullptr;
 }
